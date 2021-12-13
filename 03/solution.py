@@ -56,8 +56,6 @@ def main():
 
     for i in range(t):
         l = input().strip()
-        if i == 54:
-            print(l)
         s = solution(l)
         print(f"Case #{ i + 1 }: {s}")
 
