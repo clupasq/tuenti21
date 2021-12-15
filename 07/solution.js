@@ -163,13 +163,39 @@ assert(q.dequeue() === 3);
 assert(q.dequeue() === 4);
 assert(q.length === 0);
 
+const key = (coords) => `${coords.x},${coords.y}`;
+
+const printMap = (blocked, steps) => {
+
+    console.log(blocked);
+    console.log(steps);
+
+    const stepz = new Set(steps.map(key));
+
+    for (let y = 0; y < 30; y++) {
+        let row = "";
+        for (let x = 0; x <= 30; x++) {
+            const pos = key({x, y});
+            if (blocked.has(pos)) {
+                row += "#";
+            } else if (stepz.has(pos)) {
+                row += ".";
+            } else {
+                row += " ";
+            }
+        }
+        console.log(row);
+    }
+
+};
+
 const createSolver = (maze) => {
 
     const shortestFrom = new Map();
-
-    const key = (coords) => `${coords.x},${coords.y}`;
+    const blocked = new Set();
 
     const markShortestFrom = (to, from) => shortestFrom.set(key(to), from);
+    const markBlocked = (there) => blocked.add(key(there));
     const beenThere = (there) => shortestFrom.has(key(there));
 
     const solve = async () => {
@@ -195,16 +221,23 @@ const createSolver = (maze) => {
                     steps.push(from);
                 }
 
+                printMap(blocked, steps);
+
                 const path = steps.reverse()
-                    .map(s => `(${key(s)})`)
+                    .map(s => `(${s.x}, ${s.y})`)
                     .join(", ");
                 console.log("SOLUTION:");
                 console.log(path);
                 maze.bye();
+                return;
             }
             const availableDirs = await maze.look();
-            for (const dir of availableDirs) {
+            for (const dir in DIRECTIONS) {
                 const there = move(here, dir);
+                if (!availableDirs.has(dir)) {
+                    markBlocked(there);
+                    continue;
+                }
                 if (!beenThere(there)) {
                     todo.enqueue([there, here]);
                 }
@@ -220,19 +253,10 @@ const createSolver = (maze) => {
 
 
 const main = async () => {
-
     const maze = createMazeClient(client);
     await maze.receiveWelcome();
     const solver = createSolver(maze);
     await solver.solve();
-
-    // console.log(await maze.whereAmI());
-    // console.log(await maze.isExit());
-    // console.log(await maze.go("west"));
-    // console.log(await maze.look());
-    // console.log(await maze.goTo(0, 0));
-    //
-    // console.log(await maze.bye());
 };
 
 const client = new net.Socket();
