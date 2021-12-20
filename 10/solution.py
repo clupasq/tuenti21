@@ -54,6 +54,9 @@ def read_records(): # pylint: disable=too-many-locals
 
 records = read_records()
 
+# Message saying that the data needs to be ordered differently
+print("".join([chr(r.data[25]) for r in records]))
+
 # Data:
 # 0 = all 69
 # 1 = all 0
@@ -88,7 +91,6 @@ records = read_records()
 # 27 = min=1 max=213 distinct=213 -> the seq value
 # 28 = min=0 max=255 distinct=103
 
-# print([r.data[25] for r in records])
 # print("".join([chr(r.data[25]) for r in records]))
 # for r in records:
 #     print("\t".join(map(str, r.data)))
@@ -112,17 +114,16 @@ def hexi(vv):
 #             pass
 
 records = list(sorted(records, key=lambda x: x.seq))
-for i in range(29):
+for i in [22, 23, 27, 28]:
+    print(f"\nByte {i}:")
     print("".join([chr(r.data[i]) for r in records]))
-    print([(r.data[i]) for r in records])
 
-# Damn! there's a PNG in there!
+# Wow! There's a PNG in there!
 
 # for r1, r2 in zip(records, records[1:]):
 #     if r1.seq > r2.seq:
 #         print(r1, r2)
 
-import struct
 pngBytes = [r.data[28] for r in records]
 with open("./secret.png", "wb") as pngf:
     pngf.write((''.join(chr(i) for i in pngBytes)).encode('charmap'))
