@@ -37,22 +37,22 @@ Analyzing the hex data, we can notice the following:
 
 Looking more deeply into the data, here's what we can say about each of the 29 bytes (bytes positions are 0-based):
 
-- bytes 0-21, 24, 26 - all have constant values, so they probably encode some metadata and are not interesting for our purposes
+- bytes 0-21, 24, 26: all have constant values, so they probably encode some metadata (ex: the 127.0.0.1 IP address) and are not interesting for our purposes
 
-- byte 22 = min=2 max=255 distinct=109
-- byte 23 = min=0 max=255 distinct=145
-- byte 25 = min=32 max=121 distinct=22 (interesting - all characters are printable!)
-- byte 27 = min=1 max=213 distinct=213 -> equivalent to the seq value
-- byte 28 = min=0 max=255 distinct=103
+- byte 22: min=2 max=255 distinct=109
+- byte 23: min=0 max=255 distinct=145
+- byte 25: **min=32 max=121** distinct=22 (**interesting!** - all characters are printable!)
+- byte 27: min=1 max=213 distinct=213 (equivalent to the seq value)
+- byte 28: min=0 max=255 distinct=103
 
 Noticing that all bytes at position 25 contains printable characters, we can try to display them. Perhaps not surprisingly, a message is there, suggesting that the data is not in the right order and needs to be sorted by something else:
 
 > What a mess, you will need to reorder everything to get the priceWhat a mess, you will need to reorder everything to get the priceWhat a mess, you will need to reorder everything to get the priceWhat a mess, you w
 
-Looking again at the "interesting" bytes, it seems that byte 27 (the one equal to the `seq` field) is a good candidate for the sorting key, as it contains exactly 213 consecutive and distinct values, exactly as many as there are records.
+Looking again at the "interesting" bytes, it seems that byte 27 (the one equal to the `seq` field) is a good candidate for the sorting key, as it contains 213 consecutive and distinct values, exactly as many as there are records.
 
-OK, so let's sort the records by the 27th byte and have a new look at all "interesting" data in the new order.
-Here I'm using Python, and I have all the .pcap information loaded into the `records` list, each item containing the raw bytes in an array named `.data`, and the other metadata in fields `id`, `seq`, etc.
+OK, so let's sort the records by the 27th byte (or the metadata `seq` field, which is equivalent) and have a new look at all "interesting" data in the new order.
+Here I'm using Python, and I have all the .pcap information loaded into the `records` list, each item containing the raw bytes in a list named `.data`, and the other metadata in fields `id`, `seq`, etc.
 
 ```python
 records = list(sorted(records, key=lambda x: x.seq))
@@ -83,7 +83,7 @@ with open("./secret.png", "wb") as pngf:
     pngf.write((''.join(chr(i) for i in pngBytes)).encode('charmap'))
 ```
 
-Then, let's open the PNG. Surprise! It's a QR code:
+Then, let's open the secret.png file. Surprise! It's a QR code:
 
 ![Secret QR Code](./secret.png)
 
